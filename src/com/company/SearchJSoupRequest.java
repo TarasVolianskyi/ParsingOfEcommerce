@@ -2,6 +2,8 @@ package com.company;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 
 import java.io.IOException;
@@ -16,23 +18,26 @@ public class SearchJSoupRequest {
         this.keyWord = keyWord;
     }
 
-    public void execute() {
+    public void execute() throws IOException {
         Document executeDoc = getDocumentAfterSearch();
         if (executeDoc == null) {
             System.out.println("Something go wrong");
             return;
         }
-        ArrayList<String> items = getAllProductsFromDoc(executeDoc);//links
-        ArrayList<Product> products = new ArrayList<>();
+        ArrayList<String> items = getAllProductsFromDoc(executeDoc);//pool of links for everyone product
+        System.out.println(items);
+        ArrayList<Product> products = new ArrayList<>();//pool of products(info about product)
         for (String item : items) {
             Product product = getProductInfoFromURL(item);
             products.add(product);
+
+            System.out.println(product.getName());
         }
         SearchResult searchResult = new SearchResult();
         searchResult.setContent(products);
-        System.out.println(searchResult.createXMLResult());
-
+        System.out.println("----" + searchResult.createXMLResult());
     }
+
     private Document getDocumentAfterSearch() {
         String title = "";
         Document doc = null;
@@ -43,23 +48,54 @@ public class SearchJSoupRequest {
             e.printStackTrace();
         }
         System.out.println("Jsoup Can read HTML page from URL, title : " + title);
-
         return doc;
     }
-    private ArrayList<String> getAllProductsFromDoc(Document executeDoc) {
+
+    private ArrayList<String> getAllProductsFromDoc(Document executeDoc) throws IOException {
         ArrayList<String> result = new ArrayList<>();
-        result.add("https://www.aboutyou.de/p/calvin-klein-jeans/t-shirt-mit-logo-3673277");
-        result.add("https://www.aboutyou.de/p/calvin-klein-jeans/t-shirt-mit-logo-3653182");
-        result.add("https://www.aboutyou.de/p/h-i-s-jeans/t-shirt-3366743");
+        //Document documentMain = (Document) Jsoup.connect("https://www.aboutyou.de/suche?term=shirt&category=20201").get();
+        Document documentMain = executeDoc;
+        Elements elements = documentMain.select("div.product-image a");
+        Element numberOfPages = documentMain.select(".gt9").last();
+        //System.out.println("count = " + elements.size());
+        //System.out.println("number of pages = " + numberOfPages.text());
+        int numbOfAllPages = Integer.parseInt(numberOfPages.text());
+        for (int i = 2; i <= numbOfAllPages; i++) {
+            String urlPageFirstPart = String.format("https://www.aboutyou.de/suche?term=shirt&category=20201&page=%d", i);
+            //System.out.println("============ page - " + i + "  =====================");
+            Document documentForEveryPage = (Document) Jsoup.connect(urlPageFirstPart).get();
+            Elements elementsForEveryPage = documentForEveryPage.select("div.product-image a");
+            for (int j = 0; j < elementsForEveryPage.size(); j++) {
+                String secPartOfLink = elementsForEveryPage.get(j).attr("href");
+                String mainUrlForOneProduct = "https://www.aboutyou.de" + secPartOfLink;
+                result.add(mainUrlForOneProduct);
+                // System.out.println(mainUrlForOneProduct);
+            }
+        }
         //TODO add all items from reserch
+        //TODO add searcher for the first page
         return result;
     }
-    private Product getProductInfoFromURL(String item) {
+
+    private Product getProductInfoFromURL(String item) throws IOException {
+        // Document document = (Document) Jsoup.connect("https://www.aboutyou.de/p/review/shirt-mit-foto-print-3674301").get();
+        Document document = (Document) Jsoup.connect(item).get();
+        Element elementPrice = document.selectFirst("span.finalPrice_klth9m"/* || "span.finalPrice_klth9m-o_O-highlight_1t1mqn4"*/);
+        //Element elementPrice = document.selectFirst(".price .currency.isEUR");
+        //System.out.println("price = " + elementPrice.text());
+
+        Element elementName = document.selectFirst(".name_1jqcvyg");
+        Element elementInitialPrice = document.selectFirst("span.originalPrice_17gsomb-o_O-strikeOut_32pxry");
+        Element elementDescription = document.selectFirst("span.badge_1hhulki-o_O-extra_3bg74t");
+
         Product result = new Product();
-        result.setTitle("my product");
-        /*result.setColor"my product");
-        result.setTitle("my product");
-        result.setTitle("my product");*/
+        //result.setTitle(document.title());
+        result.setName(elementName.text());
+        //result.setBrand("");
+        //result.setColor("");
+        //result.setPrice(elementPrice.text());
+        //result.setInitialPrice(elementInitialPrice.text());
+        //result.setDescription(elementDescription.text());
         //TODO get all info about product using JSOUP
         return result;
     }

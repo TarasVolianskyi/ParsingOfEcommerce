@@ -11,6 +11,8 @@ public class Product {
     private String articleId;
     private String shippingCosts;
 
+
+
     public String getName() {
         return name;
     }
