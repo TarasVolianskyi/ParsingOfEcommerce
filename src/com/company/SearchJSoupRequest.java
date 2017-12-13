@@ -36,6 +36,7 @@ public class SearchJSoupRequest {
             System.out.println(product.getPrice());
             System.out.println(product.getInitialPrice());
             System.out.println(product.getBrand());
+            System.out.println(product.getColor());
         }
         SearchResult searchResult = new SearchResult();
         searchResult.setContent(products);
@@ -97,13 +98,13 @@ public class SearchJSoupRequest {
         String secPartOfLinkForBarand = elementLinkForBrand.attr("href");
         Document docForBrand = Jsoup.connect(item + secPartOfLinkForBarand).get();
 
-        Element elementBrand = docForBrand.selectFirst(".v3Header__title");
+        Element elementBrand = docForBrand.selectFirst(".js-product-item-brand");
 
 
         String name = elementName.text();
-        String brand = docForBrand.title();/*elementBrand.text();*/
+        String brand = elementBrand.text();
         String size;
-        String color;
+        //  String color = WebsiteKeys.elen;
         String price;
         String initialPrice;
         String description;
@@ -124,7 +125,7 @@ public class SearchJSoupRequest {
         //result.setTitle(document.title());
         result.setName(name);
         result.setBrand(brand);
-        //result.setColor("");
+        // result.setColor(color);
         result.setPrice(price);
         result.setInitialPrice(initialPrice);
         //result.setDescription(elementDescription.text());
@@ -132,5 +133,10 @@ public class SearchJSoupRequest {
         return result;
     }
 
-    
+    public String method(String str) {
+        if (str != null && str.length() > 0 && str.charAt(str.length() - 26) == 'x') {
+            str = str.substring(0, str.length() - 26);
+        }
+        return str;
+    }
 }
