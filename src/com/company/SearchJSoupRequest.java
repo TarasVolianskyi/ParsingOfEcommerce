@@ -37,6 +37,7 @@ public class SearchJSoupRequest {
             System.out.println(product.getInitialPrice());
             System.out.println(product.getBrand());
             System.out.println(product.getColor());
+            System.out.println(product.getDescription());
         }
         SearchResult searchResult = new SearchResult();
         searchResult.setContent(products);
@@ -61,13 +62,19 @@ public class SearchJSoupRequest {
         ArrayList<String> result = new ArrayList<>();
         //Document documentMain = (Document) Jsoup.connect("https://www.aboutyou.de/suche?term=shirt&category=20201").get();
         Document documentMain = executeDoc;
-        Elements elements = documentMain.select("div.product-image a");
+        //  Elements elements = documentMain.select("div.product-image a");//not necessary
         Element numberOfPages = documentMain.select(".gt9").last();
         //System.out.println("count = " + elements.size());
         //System.out.println("number of pages = " + numberOfPages.text());
         int numbOfAllPages = Integer.parseInt(numberOfPages.text());
-        for (int i = 2; i <= 3/* numbOfAllPages*/; i++) {
-            String urlPageFirstPart = String.format("https://www.aboutyou.de/suche?term=shirt&category=20201&page=%d", i);
+        for (int i = 1; i <= 3/* numbOfAllPages*/; i++) {
+           String urlPageFirstPart;
+            if(i>1){
+                urlPageFirstPart = String.format("https://www.aboutyou.de/suche?term=shirt&category=20201&page=%d", i);
+            }else {
+                urlPageFirstPart = String.format("https://www.aboutyou.de/suche?term=shirt&category=20202");
+            }
+
             System.out.println("============ page - " + i + "  =====================");
             Document documentForEveryPage = (Document) Jsoup.connect(urlPageFirstPart).get();
             Elements elementsForEveryPage = documentForEveryPage.select("div.product-image a");
@@ -75,10 +82,8 @@ public class SearchJSoupRequest {
                 String secPartOfLink = elementsForEveryPage.get(j).attr("href");
                 String mainUrlForOneProduct = "https://www.aboutyou.de" + secPartOfLink;
                 result.add(mainUrlForOneProduct);
-                // System.out.println(mainUrlForOneProduct);
             }
         }
-        //TODO add all items from reserch
         //TODO add searcher for the first page
         return result;
     }
@@ -86,28 +91,51 @@ public class SearchJSoupRequest {
     private Product getProductInfoFromURL(String item) throws IOException {
         //Document document = (Document) Jsoup.connect("https://www.aboutyou.de/p/review/shirt-mit-foto-print-3674301").get();
         Document document = (Document) Jsoup.connect(item).get();
-        Element elementName = document.selectFirst(".name_1jqcvyg");
-        Element elementInitialPrice = document.selectFirst("span.originalPrice_17gsomb-o_O-strikeOut_32pxry");
-        Element elementPriceIfDisc = document.selectFirst("span.finalPrice_klth9m-o_O-highlight_1t1mqn4");
-        Element elementPrice = document.selectFirst("span.finalPrice_klth9m");
-
+        Element elementName = document.selectFirst(WebsiteKeys.keyForElmName);
+        Element elementInitialPrice = document.selectFirst(WebsiteKeys.keyForElmInitialPrice);
+        Element elementPriceIfDisc = document.selectFirst(WebsiteKeys.keyForElmPriceIfDisc);
+        Element elementPrice = document.selectFirst(WebsiteKeys.keyForElmPrice);
         Element elementDescription = document.selectFirst("span.badge_1hhulki-o_O-extra_3bg74t");
-
-
         Element elementLinkForBrand = document.selectFirst("div.wrapper_e296pg a");
-        String secPartOfLinkForBarand = elementLinkForBrand.attr("href");
-        Document docForBrand = Jsoup.connect(item + secPartOfLinkForBarand).get();
+        String secPartOfLinkForBrand = elementLinkForBrand.attr("href");
+        Document docForBrand = Jsoup.connect(item + secPartOfLinkForBrand).get();
 
-        Element elementBrand = docForBrand.selectFirst(".js-product-item-brand");
+        Element elementBrand = docForBrand.selectFirst(WebsiteKeys.keyForElmBrand);
+
+        //  String secPartOfLinkForColor = elementColor.attr("href");
+//add more info from description
+        ArrayList<String> arrayListDescrInf = new ArrayList<>();
+        Elements elemNamesOfDescr = document.select("div.container_iv4rb4 p");
+        for (int i = 0; i < elemNamesOfDescr.size(); i++) {
+            String nameOfDescr = elemNamesOfDescr.get(i).attr("span.subline_19eqe01");
+            System.out.println("descr s= " + nameOfDescr);
+            arrayListDescrInf.add(nameOfDescr);
+        }
+
+        ArrayList<String> arrayListColors = new ArrayList<>();
+        Elements elemColors = document.select("div.thumbsWrapper_1rutc76 p");
+        for (int i = 0; i < elemColors.size(); i++) {
+            String nameOfColors = elemColors.get(i).attr("href");
+            System.out.println("color s -" + nameOfColors);
+            arrayListDescrInf.add(nameOfColors);
+        }
+
+        ArrayList<String> arrayListSizes = new ArrayList<>();
+        Elements elemNamesOfSizes = document.select("div.container_iv4rb4 p");
+        for (int i = 0; i < elemNamesOfSizes.size(); i++) {
+            String nameOfSize = elemNamesOfSizes.get(i).attr("p.subline_19eqe01");
+            //System.out.println("size s - " + nameOfSize);
+            arrayListDescrInf.add(nameOfSize);
+        }
 
 
         String name = elementName.text();
         String brand = elementBrand.text();
         String size;
-        //  String color = WebsiteKeys.elen;
+         String color = arrayListColors.toString();
         String price;
         String initialPrice;
-        String description;
+        String description = arrayListDescrInf.toString();
 
         if (elementInitialPrice != null) {
             initialPrice = elementInitialPrice.text();
@@ -125,18 +153,11 @@ public class SearchJSoupRequest {
         //result.setTitle(document.title());
         result.setName(name);
         result.setBrand(brand);
-        // result.setColor(color);
+         result.setColor(color);
         result.setPrice(price);
         result.setInitialPrice(initialPrice);
-        //result.setDescription(elementDescription.text());
-        //TODO get all info about product using JSOUP
+        // result.setColor(color);
+        result.setDescription(description);
         return result;
-    }
-
-    public String method(String str) {
-        if (str != null && str.length() > 0 && str.charAt(str.length() - 26) == 'x') {
-            str = str.substring(0, str.length() - 26);
-        }
-        return str;
     }
 }
