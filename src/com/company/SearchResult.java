@@ -21,13 +21,19 @@ public class SearchResult {
         String result = "";
 
         for (Product product : content) {
-            result += String.format("<title>%s</title>", product.getTitle());
-            result += String.format("<name>%s</name>", product.getName());
-            result += String.format("<brand>%s</brand>", product.getBrand());
-            result += String.format("<color>%s</color>", product.getColor());
-            result += String.format("<price>%s</price>", product.getPrice());
-            result += String.format("<initial_price>%s</initial_price>", product.getInitialPrice());
-            result += String.format("<description>%s</description>", product.getDescription());
+            result += String.format("<title>%s</title>\n" +
+                    "<name>%s</name>\n" +
+                    "<brand>%s</brand>\n" +
+                    "<color>%s</color>\n" +
+                    "<price>%s</price>\n" +
+                    "<initial_price>%s</initial_price>\n" +
+                    "<description>%s</description>",
+                    product.getTitle(), product.getName(), product.getBrand(),
+                    product.getColor(), product.getPrice(), product.getInitialPrice(),
+                    product.getDescription());
+
+
+
         }
         return result;
     }

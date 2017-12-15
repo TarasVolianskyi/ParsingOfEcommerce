@@ -82,4 +82,19 @@ public class Product {
     public void setTitle(String title) {
         this.title = title;
     }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "title='" + title + '\'' +
+                ", name='" + name + '\'' +
+                ", brand='" + brand + '\'' +
+                ", color='" + color + '\'' +
+                ", price='" + price + '\'' +
+                ", initialPrice='" + initialPrice + '\'' +
+                //", description='" + description + '\'' +
+                ", articleId='" + articleId + '\'' +
+                ", shippingCosts='" + shippingCosts + '\'' +
+                '}';
+    }
 }
