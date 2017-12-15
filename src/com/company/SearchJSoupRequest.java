@@ -72,7 +72,7 @@ public class SearchJSoupRequest {
         Element numberOfPages = documentMain.select(WebsiteKeys.KEY_FOR_PAGINATION).last();
         ExecutorService service = Executors.newFixedThreadPool(5);//concorency
         int numbOfAllPages = Integer.parseInt(numberOfPages.text());
-        for (int i = 1; i <= 3/* numbOfAllPages*/; i++) {
+        for (int i = 1; i <=  numbOfAllPages; i++) {
             String urlPageFirstPart;
             if (i > 1) {
                 urlPageFirstPart = String.format(WebsiteKeys.SITE_URL + WebsiteKeys.SEARCH_TERM_WITH_PAGINATION, keyWord, i);
